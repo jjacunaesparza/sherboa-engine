@@ -1,5 +1,7 @@
+from subprocess import CalledProcessError
 import tempfile
-from fastapi import FastAPI, UploadFile, File
+import shutil
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from vmaf import vmaf_compare
 
 app = FastAPI()  # Initialize the FastAPI application
@@ -15,7 +17,7 @@ def home():  # Define the root endpoint function
 
 
 def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = File(...)) -> dict:  # Define the endpoint function to compute VMAF
-    """"
+    """
     This endpoint computes the VMAF score between a reference video and a distorted video uploaded by the user.
     It uses the vmaf_compare function to perform the computation.
     Parameters:
@@ -24,15 +26,51 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
     Returns:
     - A dictionary containing the computed VMAF score.
     """
-    
+
+    print(">>> FUNCTION 'calculate_vmaf' EXECUTED <<<", flush=True)  # Print a message indicating that the VMAF calculation has started
+
+    if not reference.filename or not distorted.filename:  # Error handling #1: check if both video files are provided
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid input: both video files must be provided"
+        )
+
+    reference.file.seek(0, 2)  # Move the file pointer to the end of the reference video file to determine its size
+    reference_size = reference.file.tell()  # Get the size of the reference video file
+
+    distorted.file.seek(0, 2)  # Move the file pointer to the end of the distorted video file to determine its size
+    distorted_size = distorted.file.tell()  # Get the size of the distorted video file
+
+    print("REFERENCE SIZE:", reference_size, flush=True)  # Print the size of the reference video file for debugging purposes
+    print("DISTORTED SIZE:", distorted_size, flush=True)  # Print the size of the distorted video file for debugging purposes
+
+    reference.file.seek(0)  # Move the file pointer back to the beginning of the reference video file for reading
+    distorted.file.seek(0)  # Move the file pointer back to the beginning of the distorted video file for reading
+
+    if reference_size == 0 or distorted_size == 0:  # Error handling #2: check if both video files contain data
+        raise HTTPException(
+            status_code=400,
+            detail="Both video files must contain data"
+        )
+  
+
     with tempfile.NamedTemporaryFile(suffix=".mp4") as ref_file:
-        ref_file.write(reference.file.read())  # Write the contents of the uploaded reference video file to a temporary file
+        shutil.copyfileobj(reference.file, ref_file)
+        #ref_file.write(reference.file.read())  # Write the contents of the uploaded reference video file to a temporary file
         ref_file.flush()  # Flush the temporary file to ensure all data is written before proceeding
 
         with tempfile.NamedTemporaryFile(suffix=".mp4") as dist_file:
-            dist_file.write(distorted.file.read())  # Write the contents of the uploaded distorted video file to a temporary file
+            shutil.copyfileobj(distorted.file, dist_file)
+            #dist_file.write(distorted.file.read())  # Write the contents of the uploaded distorted video file to a temporary file
             dist_file.flush()  # Flush the temporary file to ensure all data is written before proceeding
 
-            result = vmaf_compare(ref_file.name, dist_file.name)
+            try:
+                result = vmaf_compare(ref_file.name, dist_file.name)
+            except CalledProcessError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid video file"
+                )
+
 
     return {"vmaf": result}
