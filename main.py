@@ -4,6 +4,8 @@ import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from vmaf import vmaf_compare
 
+MAX_FILE_SIZE = 250 * 1024 * 1024  # File limit: 250 MB in bytes
+
 app = FastAPI()  # Initialize the FastAPI application
 
 
@@ -41,6 +43,13 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
     distorted.file.seek(0, 2)  # Move the file pointer to the end of the distorted video file to determine its size
     distorted_size = distorted.file.tell()  # Get the size of the distorted video file
 
+    if reference_size > MAX_FILE_SIZE or distorted_size > MAX_FILE_SIZE:  # Error handling #3: check if either video file exceeds the maximum allowed size
+        raise HTTPException(
+            status_code=413,
+            detail=f"File size exceeds the limit of {MAX_FILE_SIZE / (1024 * 1024)} MB"
+        )
+
+
     print("REFERENCE SIZE:", reference_size, flush=True)  # Print the size of the reference video file for debugging purposes
     print("DISTORTED SIZE:", distorted_size, flush=True)  # Print the size of the distorted video file for debugging purposes
 
@@ -66,12 +75,12 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
 
             try:
                 result = vmaf_compare(ref_file.name, dist_file.name)
-            except CalledProcessError:  # Error handling #3: catch CalledProcessError raised by subprocess.run() in vmaf_compare() if FFmpeg fails to execute properly
+            except CalledProcessError:  # Error handling #4: catch CalledProcessError raised by subprocess.run() in vmaf_compare() if FFmpeg fails to execute properly
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid video file"
                 )
-            except RuntimeError as e:  # Error handling #4: catch RuntimeError raised by vmaf_compare() if VMAF computation exceeds the timeout limit
+            except RuntimeError as e:  # Error handling #5: catch RuntimeError raised by vmaf_compare() if VMAF computation exceeds the timeout limit
                 raise HTTPException(
                     status_code=504,
                     detail=str(e)
