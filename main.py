@@ -3,6 +3,8 @@ import tempfile
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from vmaf import vmaf_compare
+from ffprobe import is_valid_video
+
 
 MAX_FILE_SIZE = 250 * 1024 * 1024  # File limit: 250 MB in bytes
 
@@ -72,6 +74,14 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
             shutil.copyfileobj(distorted.file, dist_file)
             #dist_file.write(distorted.file.read())  # Write the contents of the uploaded distorted video file to a temporary file
             dist_file.flush()  # Flush the temporary file to ensure all data is written before proceeding
+
+
+            if not is_valid_video(ref_file.name) or not is_valid_video(dist_file.name):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid video file"
+                )
+
 
             try:
                 result = vmaf_compare(ref_file.name, dist_file.name)
