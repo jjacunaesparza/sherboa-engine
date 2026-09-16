@@ -66,10 +66,15 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
 
             try:
                 result = vmaf_compare(ref_file.name, dist_file.name)
-            except CalledProcessError:
+            except CalledProcessError:  # Error handling #3: catch CalledProcessError raised by subprocess.run() in vmaf_compare() if FFmpeg fails to execute properly
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid video file"
+                )
+            except RuntimeError as e:  # Error handling #4: catch RuntimeError raised by vmaf_compare() if VMAF computation exceeds the timeout limit
+                raise HTTPException(
+                    status_code=504,
+                    detail=str(e)
                 )
 
 
