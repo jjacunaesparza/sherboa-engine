@@ -3,7 +3,7 @@ import tempfile
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from vmaf import vmaf_compare
-from ffprobe import is_valid_video
+from ffprobe import is_valid_video, get_video_dimensions
 
 
 MAX_FILE_SIZE = 250 * 1024 * 1024  # File limit: 250 MB in bytes
@@ -83,6 +83,16 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
                 )
 
 
+            reference_width, reference_height = get_video_dimensions(ref_file.name)
+            distorted_width, distorted_height = get_video_dimensions(dist_file.name)
+
+            if (reference_width, reference_height) != (distorted_width, distorted_height):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Video dimensions must match"
+                )
+
+
             try:
                 result = vmaf_compare(ref_file.name, dist_file.name)
             except CalledProcessError:  # Error handling #4: catch CalledProcessError raised by subprocess.run() in vmaf_compare() if FFmpeg fails to execute properly
@@ -95,6 +105,5 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
                     status_code=504,
                     detail=str(e)
                 )
-
 
     return {"vmaf": result}
