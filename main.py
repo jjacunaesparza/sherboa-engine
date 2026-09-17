@@ -3,7 +3,7 @@ import tempfile
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from vmaf import vmaf_compare
-from ffprobe import is_valid_video, get_video_dimensions
+from ffprobe import is_valid_video, get_video_dimensions, get_video_duration, are_durations_compatible
 
 
 MAX_FILE_SIZE = 250 * 1024 * 1024  # File limit: 250 MB in bytes
@@ -90,6 +90,16 @@ def calculate_vmaf(reference: UploadFile = File(...), distorted: UploadFile = Fi
                 raise HTTPException(
                     status_code=400,
                     detail="Video dimensions must match"
+                )
+
+
+            reference_duration = get_video_duration(ref_file.name)
+            distorted_duration = get_video_duration(dist_file.name)
+
+            if not are_durations_compatible(reference_duration, distorted_duration):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Video durations are not compatible"
                 )
 
 

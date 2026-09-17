@@ -4,7 +4,7 @@ from pathlib import Path
 
 FFMPEG = Path.home() / "projects" / "ffmpeg-vmaf" / "ffmpeg"
 
-# Function to compute VMAF between reference and distorted videos
+# FUNCTION TO COMPUTE VMAF BETWEEN REFERENCE AND DISTORTED VIDEOS
 def vmaf_compare(reference, distorted) -> float:
     """
     Computes the VMAF score between a reference video and a distorted video using FFmpeg.
