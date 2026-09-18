@@ -1,6 +1,7 @@
 from subprocess import CalledProcessError, run
 
 
+
 # FUNCTION TO VALIDATE INPUT FILE
 def is_valid_video(file_path: str) -> bool:
     """
@@ -10,6 +11,7 @@ def is_valid_video(file_path: str) -> bool:
     Returns:
     - True if the file contains a video stream, False otherwise.
     """
+
     try:
         result = run(
             [
@@ -41,6 +43,7 @@ def get_video_dimensions(file_path: str) -> tuple[int, int]:
     Returns:
     - A tuple containing the video width and height.
     """
+
     result = run(
         [
             "ffprobe", "-v", "error",
@@ -57,7 +60,7 @@ def get_video_dimensions(file_path: str) -> tuple[int, int]:
     return int(width), int(height)
 
 
-# FUNCTION TO CHECK DURATION OF A VIDEO
+# FUNCTION TO CHECK DURATION OF A VIDEO STREAM
 def get_video_duration(file_path: str) -> float:
     """
     Returns the duration of the video in seconds.
@@ -66,6 +69,7 @@ def get_video_duration(file_path: str) -> float:
     Returns:
     - The video duration in seconds.
     """
+
     result = run(
         [
             "ffprobe", "-v", "error",
@@ -78,7 +82,9 @@ def get_video_duration(file_path: str) -> float:
         text=True
     )
 
-    return float(result.stdout.strip())
+    duration = float(result.stdout.strip())
+
+    return duration
 
 
 # FUNCTION TO CALCULATE THE DIFFERENCE IN SECONDS BETWEEN THE TWO INPUT STREAMS
@@ -94,7 +100,93 @@ def are_durations_compatible(reference_duration: float, distorted_duration: floa
 
     difference = abs(reference_duration - distorted_duration)
 
-    if difference <= 1.0:  # The tolerance to consider both streams compatible in terms of duration is 1 second
+    if difference <= 1.0:  # The tolerance to consider both streams compatible in terms of duration is: 1 sec
         return True
     else:
         return False
+
+
+# FUNCTION TO CALCULATE NOMINAL FPS RATE OF A VIDEO STREAM
+def get_video_r_fps(file_path: str) -> float:
+    """
+    Returns the nominal frame rate of the first video stream.
+    Parameters:
+    - file_path: Path to the video file.
+    Returns:
+    - r_frame_rate: The nominal video frame rate in frames per second.
+    """
+
+    result = run(
+        [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=r_frame_rate",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            file_path
+        ],
+        check=True,
+        capture_output=True,
+        text=True
+    )
+
+    numerator, denominator = result.stdout.strip().split("/")
+    r_frame_rate = int(numerator) / int(denominator)
+
+    return r_frame_rate
+
+
+# FUNCTION TO CALCULATE AVERAGE FPS RATE OF A VIDEO STREAM
+def get_video_avg_fps(file_path: str) -> float:
+    """
+    Returns the average frame rate of the first video stream.
+    Parameters:
+    - file_path: Path to the video file.
+    Returns:
+    - avg_frame_rate: The average frame rate in frames per second.
+    """
+
+    result = run(
+        [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=avg_frame_rate",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            file_path
+        ],
+        check=True,
+        capture_output=True,
+        text=True
+    )
+
+    numerator, denominator = result.stdout.strip().split("/")
+    avg_frame_rate =  int(numerator) / int(denominator)
+
+    return avg_frame_rate
+
+
+# FUNCTION TO COUNT FRAMES
+def get_video_frame_count(file_path: str) -> int:
+    """
+    Returns the number of frames in the first video stream.
+    Parameters:
+    - file_path: Path to the video file.
+    Returns:
+    - frames: The number of video frames.
+    """
+
+    result = run(
+        [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-count_frames",
+            "-show_entries", "stream=nb_read_frames",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            file_path
+        ],
+        check=True,
+        capture_output=True,
+        text=True
+    )
+
+    frames = int(result.stdout.strip())
+    return frames
