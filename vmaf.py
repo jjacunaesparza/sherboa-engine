@@ -1,8 +1,7 @@
 import subprocess
 import json
-from pathlib import Path
 
-FFMPEG = Path.home() / "projects" / "ffmpeg-vmaf" / "ffmpeg"
+FFMPEG = "ffmpeg"
 
 # FUNCTION TO COMPUTE VMAF BETWEEN REFERENCE AND DISTORTED VIDEOS
 def vmaf_compare(reference, distorted) -> float:
@@ -12,7 +11,7 @@ def vmaf_compare(reference, distorted) -> float:
     - reference: Path to the reference video file.
     - distorted: Path to the distorted video file.
     Returns:
-    - score: The computed VMAF score rounded to two decimal places.
+    - score: The computed VMAF score rounded to three decimal places.
     """
 
     output_file = "vmaf.json"  # File to store the VMAF output in JSON format

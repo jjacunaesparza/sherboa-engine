@@ -20,6 +20,8 @@ RUN git clone --branch v3.2.0 --depth 1 \
     && meson setup build \
     && meson compile -C build \
     && meson install -C build \
+    && echo "/usr/local/lib/aarch64-linux-gnu" > /etc/ld.so.conf.d/libvmaf.conf \
+    && ldconfig \
     && rm -rf /tmp/vmaf
 
 # Instalar y compilar librerias de ffmpeg v8.0
