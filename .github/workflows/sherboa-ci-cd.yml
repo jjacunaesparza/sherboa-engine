@@ -7,7 +7,9 @@ on:
 
 
 permissions:
+  id-token: write
   contents: read
+
 
 jobs:
   build:
@@ -17,6 +19,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::557643338880:role/SherboaGitHubActionsRole
+          aws-region: us-east-1
 
       - name: Build Docker image
         run: docker build -t sherboa-engine:ci .
