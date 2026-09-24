@@ -11,13 +11,14 @@ RUN apt-get update && apt-get install -y \
     yasm \
     meson \
     ninja-build \
+    xxd \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar libvmaf v3.2.0 desde el repositorio oficial en GitHub
 RUN git clone --branch v3.2.0 --depth 1 \
     https://github.com/Netflix/vmaf.git /tmp/vmaf \
     && cd /tmp/vmaf/libvmaf \
-    && meson setup build \
+    && meson setup build -Dbuilt_in_models=true \
     && meson compile -C build \
     && meson install -C build \
     && echo "/usr/local/lib/aarch64-linux-gnu" > /etc/ld.so.conf.d/libvmaf.conf \
