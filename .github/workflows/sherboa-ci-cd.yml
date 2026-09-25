@@ -49,3 +49,21 @@ jobs:
           IMAGE_URI=557643338880.dkr.ecr.us-east-1.amazonaws.com/sherboa-engine
           docker build -t $IMAGE_URI:${{ github.sha }} .
           docker push $IMAGE_URI:${{ github.sha }}
+      
+      - name: Deploy to EC2 via SSM
+        run: |
+          IMAGE_URI=557643338880.dkr.ecr.us-east-1.amazonaws.com/sherboa-engine
+          IMAGE_TAG=${{ github.sha }}
+
+          aws ssm send-command \
+            --instance-ids i-082236ea5c1088e9f \
+            --document-name AWS-RunShellScript \
+            --comment "Deploy Sherboa ${IMAGE_TAG}" \
+            --parameters "{\"commands\":[
+              \"set -e\",
+              \"aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${IMAGE_URI}\",
+              \"docker pull ${IMAGE_URI}:${IMAGE_TAG}\",
+              \"docker rm -f sherboa-engine 2>/dev/null || true\",
+              \"docker run -d --name sherboa-engine --restart unless-stopped -p 8000:8000 ${IMAGE_URI}:${IMAGE_TAG}\",
+              \"curl -f http://localhost:8000/\"
+            ]}"
