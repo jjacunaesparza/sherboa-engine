@@ -39,3 +39,7 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t sherboa-engine:ci .
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
