@@ -34,6 +34,7 @@ def is_valid_video(file_path: str) -> bool:
         return False
 
 
+
 # FUNCTION TO VALIDATE VIDEO RESOLUTION
 def get_video_dimensions(file_path: str) -> tuple[int, int]:
     """
@@ -58,6 +59,7 @@ def get_video_dimensions(file_path: str) -> tuple[int, int]:
 
     width, height = result.stdout.strip().split("x")
     return int(width), int(height)
+
 
 
 # FUNCTION TO CHECK DURATION OF A VIDEO STREAM
@@ -87,6 +89,7 @@ def get_video_duration(file_path: str) -> float:
     return duration
 
 
+
 # FUNCTION TO CALCULATE THE DIFFERENCE IN SECONDS BETWEEN THE TWO INPUT STREAMS
 def are_durations_compatible(reference_duration: float, distorted_duration: float) -> bool:
     """
@@ -104,6 +107,7 @@ def are_durations_compatible(reference_duration: float, distorted_duration: floa
         return True
     else:
         return False
+
 
 
 # FUNCTION TO CALCULATE NOMINAL FPS RATE OF A VIDEO STREAM
@@ -135,6 +139,7 @@ def get_video_r_fps(file_path: str) -> float:
     return r_frame_rate
 
 
+
 # FUNCTION TO CALCULATE AVERAGE FPS RATE OF A VIDEO STREAM
 def get_video_avg_fps(file_path: str) -> float:
     """
@@ -162,6 +167,7 @@ def get_video_avg_fps(file_path: str) -> float:
     avg_frame_rate =  int(numerator) / int(denominator)
 
     return avg_frame_rate
+
 
 
 # FUNCTION TO COUNT FRAMES

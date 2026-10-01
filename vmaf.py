@@ -3,6 +3,7 @@ import json
 
 FFMPEG = "ffmpeg"
 
+
 # FUNCTION TO COMPUTE VMAF BETWEEN REFERENCE AND DISTORTED VIDEOS
 def vmaf_compare(reference, distorted) -> float:
     """

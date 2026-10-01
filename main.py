@@ -6,14 +6,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from vmaf import vmaf_compare
 from ffprobe import is_valid_video, get_video_dimensions, get_video_duration, are_durations_compatible
 
-
 MAX_FILE_SIZE = 250 * 1024 * 1024  # File limit: 250 MB in bytes
+FRONTEND_URL = "https://sherboa.com"
+
+
 
 app = FastAPI()  # Initialize the FastAPI application
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://sherboa-engine.netlify.app"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
