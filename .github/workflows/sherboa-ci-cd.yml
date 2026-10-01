@@ -65,8 +65,9 @@ jobs:
               \"docker pull ${IMAGE_URI}:${IMAGE_TAG}\",
               \"docker rm -f sherboa-engine 2>/dev/null || true\",
               \"docker run -d --name sherboa-engine --restart unless-stopped -p 8000:8000 ${IMAGE_URI}:${IMAGE_TAG}\",
-              \"curl -f http://localhost:8000/\"
-            ]}" \
+              \"curl -f http://localhost:8000/\",
+              \"docker image prune -af\"
+            ]}" \  
             --query 'Command.CommandId' \
             --output text)
 
