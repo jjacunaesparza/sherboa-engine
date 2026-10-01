@@ -55,7 +55,7 @@ jobs:
           IMAGE_URI=557643338880.dkr.ecr.us-east-1.amazonaws.com/sherboa-engine
           IMAGE_TAG=${{ github.sha }}
 
-          aws ssm send-command \
+          COMMAND_ID=$(aws ssm send-command \
             --instance-ids i-082236ea5c1088e9f \
             --document-name AWS-RunShellScript \
             --comment "Deploy Sherboa ${IMAGE_TAG}" \
@@ -66,4 +66,10 @@ jobs:
               \"docker rm -f sherboa-engine 2>/dev/null || true\",
               \"docker run -d --name sherboa-engine --restart unless-stopped -p 8000:8000 ${IMAGE_URI}:${IMAGE_TAG}\",
               \"curl -f http://localhost:8000/\"
-            ]}"
+            ]}" \
+            --query 'Command.CommandId' \
+            --output text)
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id i-082236ea5c1088e9f
